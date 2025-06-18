@@ -1,8 +1,10 @@
+import typer
 from docker.errors import APIError
 from docker import DockerClient
 from typing import Dict, List
 from asantiya.schemas.models import AccessoryConfig
 from asantiya.logger import setup_logging
+from asantiya.utils.config import _is_local
 
 _logger = setup_logging()
 
@@ -43,3 +45,33 @@ def ensure_network(client: DockerClient, network_name: str) -> None:
             _logger.info(f"    ✓ {network_name} already exists")
     except APIError as e:
         raise RuntimeError(f"Network creation failed: {e.explanation}")
+    
+def validate_remote_credentials(config):
+    if not getattr(config.host, "key", None) and not getattr(config.host, "password", None):
+        _logger.error("❌ You must provide either --key or --password unless using --local.")
+        raise typer.Exit(code=1)
+
+
+def connect_remotely(config, docker_manager):
+    # _logger.info("🔒 Connecting remotely via SSH...")
+    # sshmanager.connect(config.server, config.host.user, config.host.key, config.host.password)
+
+    docker_manager.connect(host=config.server, user=config.host.user)
+    _logger.info("🧪 Checking Docker setup remotely...")
+    docker_manager.check_docker_version()
+
+
+def connect_locally(docker_manager):
+    _logger.info("💻 Running locally...")
+    docker_manager.connect(local=True)
+    docker_manager.check_docker_version()
+
+
+def setup_connection(config, docker_manager):
+    is_local = _is_local(config)
+
+    if not is_local:
+        validate_remote_credentials(config)
+        connect_remotely(config, docker_manager)
+    else:
+        connect_locally(docker_manager)
