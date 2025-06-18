@@ -272,6 +272,80 @@ class DockerManager:
                 )
         
         return results
+    
+    def restart_accessories(
+        self,
+        names: Union[str, List[str]],
+        timeout: int = 10,
+        force_restart: bool = False,
+        raise_errors: bool = False
+    ) -> Dict[str, Union[bool, str]]:
+        """
+        Restart one or multiple accessory containers with status reporting
+        
+        Args:
+            names: Container name(s) to restart (str or List[str])
+            timeout: Timeout in seconds for stopping containers
+            force_restart: If True, forces restart even if container isn't running
+            raise_errors: If True, raises exceptions on failures
+        
+        Returns:
+            Dictionary with restart status for each container:
+            {
+                "container1": True,  # Success
+                "container2": "Error message",  # Failure
+                ...
+            }
+        
+        Example:
+            >>> restart_accessories(["redis", "postgres"])
+            {'redis': True, 'postgres': 'Container not found'}
+        """
+        if isinstance(names, str):
+            names = [names]
+        
+        results = {}
+        
+        for name in names:
+            try:
+                if not name or not isinstance(name, str):
+                    msg = f"Invalid container name: {name}"
+                    _logger.error(msg)
+                    results[name] = msg
+                    continue
+                
+                container = self.docker_client.containers.get(name)
+                
+                if container.status != "running" and not force_restart:
+                    msg = f"Container {name} is not running (status: {container.status}). Use --force or -f to force restart"
+                    _logger.warning(msg)
+                    results[name] = msg
+                    continue
+                
+                container.restart(timeout=timeout)
+                _logger.info(f"Successfully restarted container: {name}")
+                results[name] = True
+                
+            except docker.errors.NotFound:
+                msg = f"Container {name} not found"
+                _logger.error(msg)
+                results[name] = msg
+                if raise_errors:
+                    raise ValueError(msg)
+            except docker.errors.APIError as e:
+                msg = f"Failed to restart {name}: {e.explanation}"
+                _logger.error(msg)
+                results[name] = msg
+                if raise_errors:
+                    raise RuntimeError(msg)
+            except Exception as e:
+                msg = f"Unexpected error restarting {name}: {str(e)}"
+                _logger.error(msg)
+                results[name] = msg
+                if raise_errors:
+                    raise RuntimeError(msg)
+        
+        return results
         
 def setup_docker_environment(ssh_client: SSHManager):
     # Check Docker installation
