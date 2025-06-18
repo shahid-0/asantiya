@@ -2,7 +2,7 @@ import typer
 from pathlib import Path
 from asantiya.ssh_manager import SSHManager
 from asantiya.docker_manager import DockerManager
-from asantiya.tools.config import load_config, _is_local
+from asantiya.utils.config import load_config, _is_local
 from asantiya.logger import setup_logging
 
 _logger = setup_logging()

@@ -11,7 +11,7 @@ from rich.progress import (
 import paramiko
 from asantiya.ssh_manager import SSHManager
 from asantiya.schemas.models import AccessoryConfig
-from asantiya.tools.docker import ensure_network, sort_by_dependencies
+from asantiya.utils.docker import ensure_network, sort_by_dependencies
 from asantiya.logger import setup_logging
 from asantiya.schemas.models import HostConfig
 
