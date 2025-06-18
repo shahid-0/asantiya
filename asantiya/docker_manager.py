@@ -38,32 +38,22 @@ class DockerManager:
             raise ConnectionError(f"Failed to connect to Docker: {str(e)}")
         
             
-    def check_docker_version(self, ssh_client: Optional[paramiko.SSHClient] = None) -> None:
+    def check_docker_version(self) -> str:
+        if not self.docker_client:
+            _logger.error("❌ Docker client is not connected. Please call connect() first.")
+            raise RuntimeError("Docker client not connected. Call connect() before checking the version.")
+
         try:
-            if ssh_client:
-                # Remote check via SSH
-                stdin, stdout, stderr = ssh_client.exec_command("docker --version")
-                output = stdout.read().decode().strip()
-                error = stderr.read().decode().strip()
+            version_info = self.docker_client.version()
+            version = version_info.get("Version", "Unknown")
+            _logger.info(f"🐳 Docker version: {version}")
+            return version
 
-                if stdout.channel.recv_exit_status() != 0:
-                    _logger.error(f"Remote Docker version check failed: {error}")
-                    raise RuntimeError(f"Remote Docker version check failed: {error}")
-                
-                _logger.info(f"Remote Docker Version: {output}")
-            else:
-                # Local check
-                result = subprocess.run(['docker', '--version'], check=True, capture_output=True, text=True)
-                _logger.info(f"Local Docker Version: {result.stdout.strip()}")
-
-        except subprocess.CalledProcessError as e:
-            _logger.error(f"Local Docker version check failed: {e}")
-            raise RuntimeError(f"Local Docker version check failed: {e}")
-        except FileNotFoundError:
-            _logger.error("Docker is not installed or not in the system's PATH (locally).")
-            raise
-        except Exception as e:
-            _logger.error(f"Unexpected error during Docker version check: {e}")
+        except docker.errors.DockerException as e:
+            _logger.error(f"❌ Failed to retrieve Docker version: {str(e)}")
+            raise ConnectionError("Could not connect to Docker daemon.")
+        except Exception:
+            _logger.exception("❌ Unexpected error while checking Docker version.")
             raise
 
         
