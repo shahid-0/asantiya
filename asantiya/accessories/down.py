@@ -11,7 +11,7 @@ _logger = setup_logging()
 app = typer.Typer()
 
 
-@app.command(help="Stop Odoo containers")
+@app.command(help="Stop accessories/containers")
 def down(
         accessories: Annotated[List[str], typer.Option(help="Single or list of accessories name")] = None,
         volumes: Annotated[bool, typer.Option("--volumes", "-v", help='Remove named volumes declared in the "volumes" section of the Yaml file and anonymous volumes attached to containers', is_flag=True, show_default="False")] = False

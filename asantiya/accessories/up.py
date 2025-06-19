@@ -9,7 +9,7 @@ _logger = setup_logging()
 
 app = typer.Typer()
 
-@app.command(help="Deploy odoo container")
+@app.command(help="Start accessories/container")
 def up() -> None:
     config = load_config(Path().cwd() / "deploy.yaml")
     docker_manager = DockerManager()
