@@ -6,7 +6,7 @@ from asantiya.accessories import app as accessories_app
 from asantiya import __app_name__, __version__
 
 app = typer.Typer(no_args_is_help=True)
-app.add_typer(accessories_app, name="accessories")
+app.add_typer(accessories_app, name="accessory")
 
 def _version_callback(value: bool) -> None:
     if value:
