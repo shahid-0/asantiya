@@ -1,5 +1,5 @@
 import docker
-import subprocess
+from tabulate import tabulate
 from typing import Annotated, List, Optional, Dict, Union
 import docker.errors
 from rich.progress import (
@@ -8,12 +8,10 @@ from rich.progress import (
     BarColumn,
     TransferSpeedColumn,
 )
-import paramiko
-from asantiya.ssh_manager import SSHManager
 from asantiya.schemas.models import AccessoryConfig
 from asantiya.utils.docker import ensure_network, sort_by_dependencies
 from asantiya.logger import setup_logging
-from asantiya.schemas.models import HostConfig
+from asantiya.utils.misc import _format_ports, _format_uptime
 
 _logger = setup_logging()
 
@@ -347,3 +345,52 @@ class DockerManager:
         
         return results
         
+    def list_configured_containers(self, configs: Dict[str, AccessoryConfig]) -> None:
+        """
+        Collects configured containers and displays them in a docker ps-like format.
+        """
+        try:
+            all_containers = self.docker_client.containers.list(all=True)
+            rows = self._get_container_table_rows(configs, all_containers)
+            self._print_container_table(rows)
+        except docker.errors.APIError as e:
+            print(f"❌ Docker API error: {e.explanation}")
+        except Exception as e:
+            print(f"❌ Error listing containers: {str(e)}")
+
+    def _get_container_table_rows(self, configs: Dict[str, AccessoryConfig], all_containers) -> List[List[str]]:
+        rows = []
+
+        for accessory in configs.values():
+            matched = None
+            for container in all_containers:
+                if container.name == accessory.service:
+                    matched = container
+                    break
+
+            if matched:
+                container_id = matched.id[:12]
+                image = matched.image.tags[0] if matched.image.tags else "untagged"
+                status = _format_uptime(
+                    matched.attrs["State"]["StartedAt"],
+                    matched.attrs["State"]["Status"]
+                )
+
+                port_data = matched.attrs['NetworkSettings']['Ports']
+                ports_str = _format_ports(port_data)
+
+                rows.append([
+                    container_id,
+                    image[:20],
+                    status,
+                    ports_str,
+                    matched.name,
+                ])
+            else:
+                rows.append(["-", "-", "Not created", "-", accessory.service])
+
+        return rows
+
+    def _print_container_table(self, rows: List[List[str]]) -> None:
+        headers = ["CONTAINER ID", "IMAGE", "STATUS", "PORTS", "NAMES"]
+        print(tabulate(rows, headers=headers, tablefmt="github"))
