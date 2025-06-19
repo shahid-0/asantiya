@@ -394,3 +394,59 @@ class DockerManager:
     def _print_container_table(self, rows: List[List[str]]) -> None:
         headers = ["CONTAINER ID", "IMAGE", "STATUS", "PORTS", "NAMES"]
         print(tabulate(rows, headers=headers, tablefmt="github"))
+        
+    def show_accessory_logs(
+        self,
+        configs: Dict[str, AccessoryConfig],
+        name: str,
+        follow: bool = False,
+        tail: int = 100,
+        timestamps: bool = False
+    ) -> None:
+        """
+        Display logs for an accessory container
+        
+        Args:
+            name: Name of the container (must exist in config)
+            follow: Keep streaming new log output (like tail -f)
+            tail: Number of lines to show from the end of logs
+            timestamps: Show timestamps for each log line
+        """
+        _accessory = None
+        for accessory in configs.values():
+            if name == accessory.service:
+                _accessory = accessory
+                break
+        
+        if not _accessory:
+            _logger.error(f"Error: No accessory named '{name}' in configuration")
+            return
+
+        try:
+            container = self.docker_client.containers.get(name)
+            
+            print(f"=== Showing logs for {name} ({container.image.tags[0] if container.image.tags else 'no image'}) ===")
+            
+            # Get and display logs
+            logs = container.logs(
+                stream=follow,
+                follow=follow,
+                tail=str(tail),
+                timestamps=timestamps
+            )
+            
+            if follow:
+                try:
+                    for line in logs:
+                        print(line.decode('utf-8').strip())
+                except KeyboardInterrupt:
+                    print("\nStopping log stream...")
+            else:
+                print(logs.decode('utf-8'))
+                
+        except docker.errors.NotFound:
+            _logger.warning(f"Container '{name}' not found (is it running?)")
+        except docker.errors.APIError as e:
+            _logger.error(f"Docker error: {e.explanation}")
+        except Exception as e:
+            _logger.error(f"Unexpected error: {str(e)}")
