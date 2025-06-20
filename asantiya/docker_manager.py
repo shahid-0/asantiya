@@ -1,4 +1,5 @@
 import docker
+from pathlib import Path
 from tabulate import tabulate
 from typing import Annotated, List, Optional, Dict, Union
 import docker.errors
@@ -10,6 +11,7 @@ from rich.progress import (
 )
 from asantiya.schemas.models import AccessoryConfig
 from asantiya.utils.docker import ensure_network, sort_by_dependencies
+from asantiya.utils.config import load_config
 from asantiya.logger import setup_logging
 from asantiya.utils.misc import _format_ports, _format_uptime
 
@@ -17,9 +19,16 @@ _logger = setup_logging()
 
 class DockerManager:
     
-    def __init__(self):
+    def __init__(self, config_path: Optional[Path] = None):
         self.docker = docker
         self.docker_client = None
+        self.config = self._load_config(config_path)
+
+    def _load_config(self, config_path):
+        if config_path is None:
+            config_path = Path().cwd() / "deploy.yaml"
+            
+        return load_config(config_path)
         
             
     def connect(self, host: str = None, user: str = None, local: bool = False) -> docker.DockerClient:
