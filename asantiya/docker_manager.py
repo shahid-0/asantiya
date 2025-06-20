@@ -459,3 +459,66 @@ class DockerManager:
             _logger.error(f"Docker error: {e.explanation}")
         except Exception as e:
             _logger.error(f"Unexpected error: {str(e)}")
+            
+    def reboot_single_accessory(
+        self,
+        accessory_name: str,
+        force: bool = False
+    ) -> Union[bool, str]:
+        """
+        Reboot a single accessory container (stop, remove, recreate)
+        
+        Args:
+            accessory_name: Name of the accessory from config
+            force: Remove associated volumes when deleting container
+        
+        Returns:
+            True if successful, error message if failed
+        """
+        if accessory_name not in self.config.accessories:
+            return f"Accessory '{accessory_name}' not found in configuration"
+
+        try:
+            accessory = self.config.accessories[accessory_name]
+            container_name = accessory.service
+
+            # 1. Stop and remove existing container
+            try:
+                container = self.docker_client.containers.get(container_name)
+                if container.status == "running":
+                    container.stop(timeout=10)
+                container.remove(v=force)
+                _logger.info(f"Removed old container: {container_name}")
+            except docker.errors.NotFound:
+                _logger.warning(f"No existing container found for {accessory_name}")
+            except docker.errors.APIError as e:
+                raise RuntimeError(f"Failed to remove {container_name}: {e.explanation}")
+
+            # 2. Create new container
+            new_container = self.create_accessory(accessory)
+            _logger.info(f"Successfully rebooted {accessory_name} (new container: {new_container.id[:12]})")
+            return True
+
+        except Exception as e:
+            error_msg = f"Failed to reboot {accessory_name}: {str(e)}"
+            _logger.error(error_msg)
+            return error_msg
+        
+    def reboot_all_accessories(
+        self,
+        force: bool = False
+    ) -> None:
+        """
+        Reboot all accessory containers
+        
+        Args:
+            force: Remove associated volumes when deleting containers
+        
+        Returns: None
+        """
+        for accessory_name in self.config.accessories.keys():
+            self.reboot_single_accessory(
+                accessory_name,
+                force=force
+            )
+            

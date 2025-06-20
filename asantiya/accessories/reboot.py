@@ -1,0 +1,32 @@
+import typer
+from typing import Annotated, List
+from pathlib import Path
+from asantiya.docker_manager import DockerManager
+from asantiya.utils.config import load_config
+from asantiya.logger import setup_logging
+from asantiya.utils.docker import setup_connection
+
+_logger = setup_logging()
+
+app = typer.Typer()
+
+
+@app.command(help="Reboot existing accessory on host (stop container, remove container, start new container; use NAME=all to boot all accessories)")
+def reboot(
+        name: Annotated[str, typer.Argument(help="Accessory name (use all to boot all accessories)")],
+        force: Annotated[bool, typer.Option("--force", "-f", help="Continue after errors", is_flag=True, show_default="False")] = False,
+    ) -> None:
+    docker_manager = DockerManager()
+
+    try:
+        setup_connection(docker_manager)
+        if name and name != "all":
+            result = docker_manager.reboot_single_accessory(name)
+            if result is not True:
+                typer.echo(f"Error: {result}", err=True)
+                raise typer.Exit(1)
+        else:
+            docker_manager.reboot_all_accessories(force=force)
+
+    except Exception as e:
+        _logger.exception(f"❌ Unexpected error during rebooting containers: {e}")
