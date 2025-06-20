@@ -17,10 +17,10 @@ def env_var_constructor(loader, node) -> str:
 
 yaml.SafeLoader.add_constructor("!ENV", env_var_constructor)
 
-def load_config(file_path: str) -> AppConfig:
+def load_config(file_path: Path) -> AppConfig:
     """Load and validate YAML configuration, with environment variable support"""
     try:
-        path = Path(file_path)
+        path = Path(file_path).expanduser()
         if not path.exists():
             raise FileNotFoundError(f"Config file not found: {file_path}")
         

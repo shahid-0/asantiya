@@ -52,11 +52,11 @@ def validate_remote_credentials(config):
         raise typer.Exit(code=1)
 
 
-def connect_remotely(config, docker_manager):
+def connect_remotely(docker_manager):
     # _logger.info("🔒 Connecting remotely via SSH...")
     # sshmanager.connect(config.server, config.host.user, config.host.key, config.host.password)
 
-    docker_manager.connect(host=config.server, user=config.host.user)
+    docker_manager.connect(host=docker_manager.config.server, user=docker_manager.config.host.user)
     _logger.info("🧪 Checking Docker setup remotely...")
     docker_manager.check_docker_version()
 
@@ -67,11 +67,11 @@ def connect_locally(docker_manager):
     docker_manager.check_docker_version()
 
 
-def setup_connection(config, docker_manager):
-    is_local = _is_local(config)
+def setup_connection(docker_manager):
+    is_local = _is_local(docker_manager.config)
 
     if not is_local:
-        validate_remote_credentials(config)
-        connect_remotely(config, docker_manager)
+        validate_remote_credentials(docker_manager.config)
+        connect_remotely(docker_manager.config, docker_manager)
     else:
         connect_locally(docker_manager)
