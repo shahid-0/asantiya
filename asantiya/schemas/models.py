@@ -9,6 +9,12 @@ class HostConfig(BaseModel):
     user: str = "root"
     key: Path = None
     password: str = None
+    
+class Builder(BaseModel):
+    arch: str
+    remote: str
+    local: bool
+    dockerfile: Path = Path.cwd()
 
 class AccessoryConfig(BaseModel):
     image: str
@@ -28,6 +34,8 @@ class AccessoryConfig(BaseModel):
 
 class AppConfig(BaseModel):
     service: str
+    image: str
     server: str
+    builder: Builder
     host: Union[HostConfig, bool]
     accessories: Dict[str, AccessoryConfig]
