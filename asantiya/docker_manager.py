@@ -9,7 +9,7 @@ from rich.progress import (
     BarColumn,
     TransferSpeedColumn,
 )
-from asantiya.schemas.models import AccessoryConfig
+from asantiya.schemas.models import AccessoryConfig, AppConfig
 from asantiya.utils.docker import ensure_network, sort_by_dependencies
 from asantiya.utils.config import load_config
 from asantiya.logger import setup_logging
@@ -22,7 +22,7 @@ class DockerManager:
     def __init__(self, config_path: Optional[Path] = None):
         self.docker = docker
         self.docker_client = None
-        self.config = self._load_config(config_path)
+        self.config: AppConfig = self._load_config(config_path)
 
     def _load_config(self, config_path):
         if config_path is None:
@@ -521,4 +521,88 @@ class DockerManager:
                 accessory_name,
                 force=force
             )
+   
+    def build_image_from_dockerfile(
+        self,
+        dockerfile_path: str,
+        tag: str,
+        build_args: Optional[Dict[str, str]] = None,
+        quiet: bool = False,
+        rm: bool = True,
+        pull: bool = False
+    ) -> docker.models.images.Image:
+        """
+        Build a Docker image from a Dockerfile with real-time log output
+        
+        Args:
+            dockerfile_path: Path to directory containing Dockerfile
+            tag: Image name and tag (e.g., 'myapp:1.0')
+            build_args: Dictionary of build arguments
+            quiet: Suppress build output
+            rm: Remove intermediate containers after build
+            pull: Always attempt to pull newer versions of base images
+        
+        Returns:
+            The built Docker image object
+        
+        Raises:
+            ValueError: If Dockerfile doesn't exist
+            RuntimeError: If build fails
+        """
+        try:
+            # Validate Dockerfile exists
+            dockerfile_fullpath = Path(dockerfile_path).expanduser() / "Dockerfile"
+            if not dockerfile_fullpath.exists():
+                raise ValueError(f"Dockerfile not found at {dockerfile_fullpath}")
             
+            if not quiet:
+                _logger.info(f"🚀 Building image {tag} from {dockerfile_fullpath}")
+                _logger.info("=" * 60)
+            
+            # Build the image with real-time streaming
+            stream = self.docker_client.api.build(
+                path=str(dockerfile_path),
+                tag=tag,
+                buildargs=build_args,
+                rm=rm,
+                pull=pull,
+                decode=True  # Important for streaming logs
+            )
+            
+            # Process build output in real-time
+            image_id = None
+            for chunk in stream:
+                if not quiet:
+                    if 'stream' in chunk:
+                        line = chunk['stream'].strip()
+                        if line:
+                            _logger.info(f"│ {line}")
+                    elif 'aux' in chunk:
+                        image_id = chunk['aux']['ID']
+                    elif 'error' in chunk:
+                        _logger.error(f"❌ ERROR: {chunk['error']}")
+                        raise RuntimeError(chunk['error'])
+                    elif 'status' in chunk:
+                        _logger.info(f"⏳ {chunk['status']}")
+                        if 'progress' in chunk:
+                            _logger.info(f"   {chunk['progress']}")
+            
+            if not quiet:
+                _logger.info("=" * 60)
+                if image_id:
+                    _logger.info(f"✅ Successfully built {tag} (ID: {image_id[:12]})")
+                else:
+                    _logger.info("⚠️  Build completed but no image ID received")
+            
+            return self.docker_client.images.get(tag)
+            
+        except docker.errors.BuildError as e:
+            error_msg = "Build failed:\n"
+            for entry in e.build_log:
+                if 'stream' in entry and entry['stream'].strip():
+                    error_msg += f"  {entry['stream'].strip()}\n"
+            raise RuntimeError(error_msg)
+        except docker.errors.APIError as e:
+            raise RuntimeError(f"Docker API error: {e.explanation}")
+        except Exception as e:
+            raise RuntimeError(f"Unexpected error: {str(e)}")      
