@@ -637,7 +637,7 @@ class DockerManager:
             host_port, container_port = config.app_ports.split(':')
             try:
                 container = self.docker_client.containers.run(
-                    image=config.image,
+                    image=image,
                     name=config.service,
                     # environment=config.env,
                     ports={f"{container_port}/tcp": int(host_port)},

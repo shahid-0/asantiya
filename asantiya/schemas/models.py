@@ -1,4 +1,4 @@
-from pydantic import BaseModel, field_validator
+from pydantic import BaseModel, Field, field_validator
 from typing import Dict, List, Literal, Union
 from pathlib import Path
 
@@ -11,16 +11,10 @@ class HostConfig(BaseModel):
     password: str = None
     
 class Builder(BaseModel):
-    arch: str
-    remote: str
-    local: bool
-    dockerfile: Path = Path.cwd()
-    
-class Builder(BaseModel):
     arch: Literal['amd64', 'arm64', 'armv7'] = 'amd64'
+    remote: str = ""
+    local: bool = False
     dockerfile: Path = Path.cwd()
-    local: bool
-    remote: str
     
     @property
     def platform(self) -> str:
@@ -49,10 +43,10 @@ class AccessoryConfig(BaseModel):
         return v
 
 class AppConfig(BaseModel):
-    service: str
-    image: str
-    server: str
-    app_ports: str
-    builder: Builder
-    host: Union[HostConfig, bool]
-    accessories: Dict[str, AccessoryConfig]
+    service: str = "asantiya"
+    image: str = "asantiya-service"
+    server: str = "${SERVER}"
+    app_ports: str = "HOST_PORT:CONTAINER_PORT"
+    builder: Builder = Builder()
+    host: Union[HostConfig, bool] = False
+    accessories: Dict[str, AccessoryConfig] = Field(default_factory=dict)
