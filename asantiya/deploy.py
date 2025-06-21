@@ -1,8 +1,5 @@
 import typer
-from typing import Annotated, List
-from pathlib import Path
 from asantiya.docker_manager import DockerManager
-from asantiya.utils.config import load_config
 from asantiya.logger import setup_logging
 from asantiya.utils.docker import setup_connection
 
@@ -17,8 +14,7 @@ def deploy() -> None:
     
     try:
         setup_connection(docker_manager)
-
-        docker_manager.build_image_from_dockerfile(docker_manager.config.builder.dockerfile, docker_manager.config.image)
+        docker_manager.deploy_app()
 
     except Exception as e:
         _logger.exception(f"❌ Unexpected error during deploying app: {e}")

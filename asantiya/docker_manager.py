@@ -602,4 +602,56 @@ class DockerManager:
             raise RuntimeError(f"Docker API error: {e.explanation}")
         except Exception as e:
             raise RuntimeError(f"Unexpected error: {str(e)}")    
+    
+    def deploy_app(self) -> None:
+        """
+        Deploy app to the server
         
+        # Args:
+            # builder: Configured Builder instance
+            # tag: Image name and tag (e.g., 'myapp:1.0')
+            # build_args: Dictionary of build arguments
+            # quiet: Suppress build output
+            # rm: Remove intermediate containers after build
+            # pull: Always attempt to pull newer versions of base images
+        
+        Returns:
+            The built Docker image object
+        
+        Raises:
+            ValueError: If Dockerfile doesn't exist
+            RuntimeError: If build fails
+        """
+        try:
+            config = self.config
+            builder_conf = config.builder
+            builder = Builder(
+                arch="amd64", 
+                dockerfile=builder_conf.dockerfile, 
+                local=builder_conf.local, 
+                remote=builder_conf.remote
+            )
+            image = self.build_image_from_dockerfile(builder, self.config.image)
+            
+            # Prepare container config
+            host_port, container_port = config.app_ports.split(':')
+            try:
+                container = self.docker_client.containers.run(
+                    image=config.image,
+                    name=config.service,
+                    # environment=config.env,
+                    ports={f"{container_port}/tcp": int(host_port)},
+                    # volumes=self._parse_volumes(config.volumes),
+                    # network=config.network,
+                    detach=True,
+                    # restart_policy={"Name": config.options.restart},
+                    labels={"managed_by": "odooops"}
+                )
+            
+                return container
+                
+            except docker.errors.APIError as e:
+                raise RuntimeError(f"Failed to run {config.service}: {e.explanation}")
+            
+        except Exception as e:
+            raise RuntimeError(f"Unexpected error: {str(e)}")

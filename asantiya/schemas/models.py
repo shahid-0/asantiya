@@ -52,6 +52,7 @@ class AppConfig(BaseModel):
     service: str
     image: str
     server: str
+    app_ports: str
     builder: Builder
     host: Union[HostConfig, bool]
     accessories: Dict[str, AccessoryConfig]
