@@ -1,38 +1,61 @@
 import re
 import yaml
-from pathlib import Path
+from typing import Any, Dict
 from asantiya.schemas.models import AppConfig, HostConfig
 from asantiya.utils.load_env import get_env
 
-# Register the !ENV tag support
-env_var_pattern = re.compile(r'.*?\${(\w+)}.*?')
-
-def env_var_constructor(loader, node) -> str:
-    value = loader.construct_scalar(node)
-    matches = env_var_pattern.findall(value)
-    for var in matches:
-        env_value = get_env(var, default=f"<missing:{var}>")
-        value = value.replace(f"${{{var}}}", env_value)
-    return value
-
-yaml.SafeLoader.add_constructor("!ENV", env_var_constructor)
-
-def load_config(file_path: Path) -> AppConfig:
-    """Load and validate YAML configuration, with environment variable support"""
-    try:
-        path = Path(file_path).expanduser()
-        if not path.exists():
-            raise FileNotFoundError(f"Config file not found: {file_path}")
-        
-        with open(path, 'r') as f:
-            raw_config = yaml.load(f, Loader=yaml.SafeLoader)  # Use loader with !ENV
-        
-        return AppConfig(**raw_config)  # Validates using your Pydantic model
+def load_config(yaml_file_path: str, output_file_path: str = None, 
+                      required_vars: list = None) -> AppConfig:
+    """
+    Load environment variables into a YAML file, replacing ${VAR} placeholders with actual values.
     
-    except yaml.YAMLError as e:
-        raise RuntimeError(f"YAML parsing error: {e}")
-    except Exception as e:
-        raise RuntimeError(f"Configuration error: {str(e)}")
+    Args:
+        yaml_file_path: Path to the input YAML file with placeholders
+        output_file_path: Path to save the processed YAML (if None, returns dict without saving)
+        required_vars: List of environment variables that must be set
+    
+    Returns:
+        Dictionary with environment variables substituted
+    
+    Raises:
+        EnvironmentError: If any required variable is missing
+    """
+    # Pattern to match ${ENV_VAR} style placeholders
+    env_var_pattern = re.compile(r'\$\{([^}]+)\}')
+    
+    def replace_env_vars(value):
+        """Replace all environment variable placeholders in a string."""
+        if isinstance(value, str):
+            def replace_match(match):
+                var_name = match.group(1)
+                # Check if this is a required variable
+                is_required = required_vars and var_name in required_vars
+                return get_env(var_name, required=is_required)
+            return env_var_pattern.sub(replace_match, value)
+        return value
+    
+    # Read the YAML file
+    with open(yaml_file_path, 'r') as f:
+        data = yaml.safe_load(f)
+    
+    # Process the entire data structure recursively
+    def process(item):
+        if isinstance(item, dict):
+            return {k: process(v) for k, v in item.items()}
+        elif isinstance(item, list):
+            return [process(v) for v in item]
+        elif isinstance(item, str):
+            return replace_env_vars(item)
+        return item
+    
+    processed_data = process(data)
+    
+    # Save to output file if specified
+    if output_file_path:
+        with open(output_file_path, 'w') as f:
+            yaml.dump(processed_data, f)
+    
+    return AppConfig(**processed_data)
     
 def _is_local(config: HostConfig) -> bool:
     """
