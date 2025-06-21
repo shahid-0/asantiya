@@ -1,5 +1,5 @@
 from pydantic import BaseModel, field_validator
-from typing import Dict, List, Union
+from typing import Dict, List, Literal, Union
 from pathlib import Path
 
 class ContainerOptions(BaseModel):
@@ -15,6 +15,22 @@ class Builder(BaseModel):
     remote: str
     local: bool
     dockerfile: Path = Path.cwd()
+    
+class Builder(BaseModel):
+    arch: Literal['amd64', 'arm64', 'armv7'] = 'amd64'
+    dockerfile: Path = Path.cwd()
+    local: bool
+    remote: str
+    
+    @property
+    def platform(self) -> str:
+        return f'linux/{self.arch}'
+    
+    @field_validator('dockerfile')
+    def validate_dockerfile(cls, v: Path) -> Path:
+        if not (v / 'Dockerfile').exists():
+            raise ValueError(f"Dockerfile not found in {v}")
+        return v
 
 class AccessoryConfig(BaseModel):
     image: str

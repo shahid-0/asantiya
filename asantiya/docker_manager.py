@@ -9,7 +9,7 @@ from rich.progress import (
     BarColumn,
     TransferSpeedColumn,
 )
-from asantiya.schemas.models import AccessoryConfig, AppConfig
+from asantiya.schemas.models import AccessoryConfig, AppConfig, Builder
 from asantiya.utils.docker import ensure_network, sort_by_dependencies
 from asantiya.utils.config import load_config
 from asantiya.logger import setup_logging
@@ -524,7 +524,7 @@ class DockerManager:
    
     def build_image_from_dockerfile(
         self,
-        dockerfile_path: str,
+        builder: Builder,
         tag: str,
         build_args: Optional[Dict[str, str]] = None,
         quiet: bool = False,
@@ -535,7 +535,7 @@ class DockerManager:
         Build a Docker image from a Dockerfile with real-time log output
         
         Args:
-            dockerfile_path: Path to directory containing Dockerfile
+            builder: Configured Builder instance
             tag: Image name and tag (e.g., 'myapp:1.0')
             build_args: Dictionary of build arguments
             quiet: Suppress build output
@@ -550,18 +550,14 @@ class DockerManager:
             RuntimeError: If build fails
         """
         try:
-            # Validate Dockerfile exists
-            dockerfile_fullpath = Path(dockerfile_path).expanduser() / "Dockerfile"
-            if not dockerfile_fullpath.exists():
-                raise ValueError(f"Dockerfile not found at {dockerfile_fullpath}")
             
             if not quiet:
-                _logger.info(f"🚀 Building image {tag} from {dockerfile_fullpath}")
-                _logger.info("=" * 60)
+                _logger.info(f"🏗️ Building {tag} for {builder.platform}")
             
             # Build the image with real-time streaming
             stream = self.docker_client.api.build(
-                path=str(dockerfile_path),
+                path=str(builder.dockerfile),
+                platform=builder.platform,
                 tag=tag,
                 buildargs=build_args,
                 rm=rm,
@@ -605,4 +601,5 @@ class DockerManager:
         except docker.errors.APIError as e:
             raise RuntimeError(f"Docker API error: {e.explanation}")
         except Exception as e:
-            raise RuntimeError(f"Unexpected error: {str(e)}")      
+            raise RuntimeError(f"Unexpected error: {str(e)}")    
+        
