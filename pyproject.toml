@@ -1,0 +1,75 @@
+[build-system]
+requires = ["setuptools>=65", "wheel"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "asantiya"
+version = "0.1.0"
+description = "Docker deployment CLI tool for local and remote environments"
+readme = "README.md"
+requires-python = ">=3.8"
+license = {file = "LICENSE"}
+authors = [
+    {name = "Shahid Khan", email = "shahiddev91@gmail.com"},
+]
+classifiers = [
+    "Development Status :: 3 - Alpha",
+    "Intended Audience :: Developers",
+    "Intended Audience :: System Administrators",
+    "License :: OSI Approved :: MIT License",
+    "Programming Language :: Python :: 3",
+    "Programming Language :: Python :: 3.8+",
+    "Topic :: Software Development :: Build Tools",
+    "Topic :: System :: Systems Administration",
+    "Topic :: Utilities",
+]
+keywords = ["docker", "deployment", "cli", "devops"]
+dependencies = [
+    "docker>=7.1.0",
+    "python-dotenv>=1.1.0",
+    "PyYAML>=6.0.2",
+    "typer>=0.16.0",
+    "paramiko>=3.5.1",
+    "tabulate>=0.9.0",
+    "pydantic>=2.11.7",
+    "python-dateutil>=2.9.0"
+]
+
+[project.optional-dependencies]
+dev = [
+    "pytest>=7.0",
+    "pytest-cov>=4.0",
+    "black>=23.0",
+    "mypy>=1.0",
+    "flake8>=6.0",
+    "isort>=5.12",
+    "ipython>=8.0", 
+]
+django = ["Django>=5.0"]
+
+[project.urls]
+Homepage = "https://github.com/yourusername/asantiya"
+Documentation = "https://github.com/yourusername/asantiya#readme"
+Issues = "https://github.com/yourusername/asantiya/issues"
+
+[project.scripts]
+asantiya = "asantiya.__main__:main"
+
+# [project.entry-points."asantiya.commands"]
+# down = "asantiya.accessories.down:cli"
+# logs = "asantiya.accessories.logs:cli"
+# ls = "asantiya.accessories.ls:cli"
+# reboot = "asantiya.accessories.reboot:cli"
+# restart = "asantiya.accessories.restart:cli"
+# up = "asantiya.accessories.up:cli"
+
+[tool.setuptools.packages.find]
+where = ["."]
+
+[tool.black]
+line-length = 88
+target-version = ['py38']
+
+[tool.isort]
+profile = "black"
+line_length = 88
