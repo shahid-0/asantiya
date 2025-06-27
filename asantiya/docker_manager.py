@@ -452,14 +452,8 @@ class DockerManager:
             tail: Number of lines to show from the end of logs
             timestamps: Show timestamps for each log line
         """
-        _accessory = None
-        for accessory in self.config.accessories.keys():
-            if name == self._get_service_name(self.config.accessories[accessory], accessory):
-                _accessory = accessory
-                break
-        
-        if not _accessory:
-            _logger.error(f"Error: No accessory named '{name}' in configuration")
+        name = self._find_accessory_by_name(name)
+        if not name:
             return
 
         try:
