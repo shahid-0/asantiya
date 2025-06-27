@@ -62,7 +62,20 @@ class DockerManager:
         except Exception:
             _logger.exception("❌ Unexpected error while checking Docker version.")
             raise
+    
+    def _get_service_name(self, accessory: AccessoryConfig, service_name: str) -> str:
+        """if accessory.config is none make asantiya-{service_name}
 
+        Args:
+            accessory (AccessoryConfig): accessory config
+            service_name (str): name of service
+
+        Returns:
+            str
+        """
+        
+        service_name = accessory.service if accessory.service else "asantiya-{name}".format(name=service_name)
+        return service_name
         
     def pull_images(self, images: Annotated[List[str], "List of docker images"]):
         if not images or not isinstance(images, list) or not all(isinstance(img, str) and img.strip() for img in images):
@@ -373,10 +386,10 @@ class DockerManager:
     def _get_container_table_rows(self, configs: Dict[str, AccessoryConfig], all_containers) -> List[List[str]]:
         rows = []
 
-        for accessory in configs.values():
+        for service_name, accessory in configs.items():
             matched = None
             for container in all_containers:
-                if container.name == accessory.service:
+                if container.name == self._get_service_name(accessory, service_name):
                     matched = container
                     break
 
