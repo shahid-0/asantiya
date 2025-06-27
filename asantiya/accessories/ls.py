@@ -14,8 +14,7 @@ def ls() -> None:
     try:
         setup_connection(docker_manager)
             
-        results = docker_manager.list_configured_containers(docker_manager.config.accessories)
-        # _logger.info(f"Successfully deployed in order: {', '.join(results.keys())}")
+        docker_manager.list_configured_containers()
             
     except Exception as e:
         _logger.exception(f"Unexpected error during listing the containers: {e}")

@@ -354,13 +354,13 @@ class DockerManager:
         
         return results
         
-    def list_configured_containers(self, configs: Dict[str, AccessoryConfig]) -> None:
+    def list_configured_containers(self) -> None:
         """
         Collects configured containers and displays them in a docker ps-like format.
         """
         try:
             all_containers = self.docker_client.containers.list(all=True)
-            rows = self._get_container_table_rows(configs, all_containers)
+            rows = self._get_container_table_rows(self.config.accessories, all_containers)
             self._print_container_table(rows)
         except docker.errors.APIError as e:
             print(f"❌ Docker API error: {e.explanation}")
