@@ -438,7 +438,7 @@ class DockerManager:
         """
         _accessory = None
         for accessory in self.config.accessories.keys():
-            if name == accessory:
+            if name == self._get_service_name(self.config.accessories[accessory], accessory):
                 _accessory = accessory
                 break
         
