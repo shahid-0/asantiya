@@ -77,6 +77,20 @@ class DockerManager:
         service_name = accessory.service if accessory.service else "asantiya-{name}".format(name=service_name)
         return service_name
         
+    def _find_accessory_by_name(self, name: str):
+        _accessory = None
+        for accessory in self.config.accessories.keys():
+            if name == self._get_service_name(self.config.accessories[accessory], accessory):
+                _accessory = self._get_service_name(self.config.accessories[accessory], accessory)
+                break
+
+        if not _accessory:
+            _logger.error(f"Error: No accessory named '{name}' in configuration")
+            return None
+
+        return _accessory
+
+
     def pull_images(self, images: Annotated[List[str], "List of docker images"]):
         if not images or not isinstance(images, list) or not all(isinstance(img, str) and img.strip() for img in images):
             raise ValueError("You must provide a non-empty list of valid Docker image names.")
@@ -214,7 +228,9 @@ class DockerManager:
                 if raise_errors:
                     raise ValueError(msg)
                 return
-
+            name = self._find_accessory_by_name(name)
+            if not name:
+                return
             try:
                 container = self.docker_client.containers.get(name)
                 
@@ -250,7 +266,7 @@ class DockerManager:
         raise_errors: bool = False
     ) -> Dict[str, Union[bool, str]]:
         """Remove multiple containers with status reporting"""
-        names = [name] if isinstance(names, str) else names
+        names = [names] if isinstance(names, str) else names
         
         results = {}
         for name in names:
