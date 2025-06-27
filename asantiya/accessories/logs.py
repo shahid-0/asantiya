@@ -19,7 +19,7 @@ def logs(
     try:
         setup_connection(docker_manager)
             
-        docker_manager.show_accessory_logs(docker_manager.config.accessories, name, follow, tail)
+        docker_manager.show_accessory_logs(name, follow, tail)
             
     except Exception as e:
         _logger.exception(f"Unexpected error during showing accessory logs: {e}")

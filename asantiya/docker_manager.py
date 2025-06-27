@@ -406,7 +406,6 @@ class DockerManager:
         
     def show_accessory_logs(
         self,
-        configs: Dict[str, AccessoryConfig],
         name: str,
         follow: bool = False,
         tail: int = 100,
@@ -422,8 +421,8 @@ class DockerManager:
             timestamps: Show timestamps for each log line
         """
         _accessory = None
-        for accessory in configs.values():
-            if name == accessory.service:
+        for accessory in self.config.accessories.keys():
+            if name == accessory:
                 _accessory = accessory
                 break
         
