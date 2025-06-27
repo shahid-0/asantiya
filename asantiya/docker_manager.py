@@ -112,18 +112,19 @@ class DockerManager:
                         style="green dim"
                     )
                     
-    def create_accessory(self, config: AccessoryConfig) -> docker.models.containers.Container:
+    def create_accessory(self, config: AccessoryConfig, service_name: str) -> docker.models.containers.Container:
         """Create a single accessory container"""
+        service_name = config.service if config.service else f"asantiya-{service_name}"
         try:
             # Check if container already exists
             try:
-                existing_container = self.docker_client.containers.get(config.service)
+                existing_container = self.docker_client.containers.get(service_name)
                 
                 if existing_container.status == "running":
-                    _logger.info(f"Container {config.service} is already running")
+                    _logger.info(f"Container {service_name} is already running")
                     return existing_container
                     
-                _logger.info(f"Found stopped container {config.service} - starting it")
+                _logger.info(f"Found stopped container {service_name} - starting it")
                 existing_container.start()
                 return existing_container
                 
@@ -141,7 +142,7 @@ class DockerManager:
             
             container = self.docker_client.containers.run(
                 image=config.image,
-                name=config.service,
+                name=service_name,
                 environment=config.env,
                 ports={f"{container_port}/tcp": int(host_port)},
                 volumes=self._parse_volumes(config.volumes),
@@ -154,7 +155,7 @@ class DockerManager:
             return container
             
         except docker.errors.APIError as e:
-            raise RuntimeError(f"Failed to create {config.service}: {e.explanation}")
+            raise RuntimeError(f"Failed to create {service_name}: {e.explanation}")
         
     def list_accessory_services(self) -> List[str]:
         """
@@ -272,7 +273,7 @@ class DockerManager:
         for service_name in ordered_services:
             config = configs[service_name]
             try:
-                container = self.create_accessory(config)
+                container = self.create_accessory(config, service_name)
                 results[service_name] = container.id
                 print(f"Started {service_name} ({container.id[:12]})")
             except Exception as e:
@@ -496,7 +497,7 @@ class DockerManager:
                 raise RuntimeError(f"Failed to remove {container_name}: {e.explanation}")
 
             # 2. Create new container
-            new_container = self.create_accessory(accessory)
+            new_container = self.create_accessory(accessory, accessory_name)
             _logger.info(f"Successfully rebooted {accessory_name} (new container: {new_container.id[:12]})")
             return True
 

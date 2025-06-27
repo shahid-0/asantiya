@@ -1,5 +1,5 @@
 from pydantic import BaseModel, Field, field_validator
-from typing import Dict, List, Literal, Union
+from typing import Dict, List, Literal, Union, Optional
 from pathlib import Path
 
 class ContainerOptions(BaseModel):
@@ -28,7 +28,7 @@ class Builder(BaseModel):
 
 class AccessoryConfig(BaseModel):
     image: str
-    service: str
+    service: Optional[str] = None
     network: str
     ports: str
     env: Dict[str, str] = {}
