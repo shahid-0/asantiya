@@ -1,7 +1,5 @@
 import typer
-from pathlib import Path
 from asantiya.docker_manager import DockerManager
-from asantiya.utils.config import load_config
 from asantiya.utils.docker import setup_connection
 from asantiya.logger import setup_logging
 
