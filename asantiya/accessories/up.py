@@ -14,7 +14,7 @@ def up() -> None:
     try:
         setup_connection(docker_manager)
             
-        results = docker_manager.create_all_accessories(docker_manager.config.accessories)
+        results = docker_manager.create_all_accessories()
         _logger.info(f"Successfully deployed in order: {', '.join(results.keys())}")
             
     except Exception as e:

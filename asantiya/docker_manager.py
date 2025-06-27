@@ -156,7 +156,7 @@ class DockerManager:
         except docker.errors.APIError as e:
             raise RuntimeError(f"Failed to create {config.service}: {e.explanation}")
         
-    def list_accessory_services(self, config: Dict[str, AccessoryConfig]) -> List[str]:
+    def list_accessory_services(self) -> List[str]:
         """
         List all service names from the accessories configuration.
         
@@ -168,6 +168,7 @@ class DockerManager:
             Example:
                 ["redis-service", "database-service"]
         """
+        config = self.config.accessories
         if not config:
             return []
         
@@ -262,9 +263,10 @@ class DockerManager:
             result[host] = {'bind': container, 'mode': mode}
         return result
     
-    def create_all_accessories(self, configs: Dict[str, AccessoryConfig]) -> Dict[str, str]:
+    def create_all_accessories(self) -> Dict[str, str]:
         """Create containers in dependency order"""
         results = {}
+        configs = self.config.accessories
         ordered_services = sort_by_dependencies(configs)
 
         for service_name in ordered_services:

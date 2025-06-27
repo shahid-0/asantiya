@@ -19,7 +19,7 @@ def restart(
         setup_connection(docker_manager)
 
         if not names:
-            names = docker_manager.list_accessory_services(docker_manager.config.accessories) 
+            names = docker_manager.list_accessory_services() 
         docker_manager.restart_accessories(names=names, force_restart=force)
 
     except Exception as e:

@@ -20,7 +20,7 @@ def down(
         setup_connection(docker_manager)
 
         if name == "all":
-            name = docker_manager.list_accessory_services(docker_manager.config.accessories) 
+            name = docker_manager.list_accessory_services() 
         docker_manager.stop_accessories(name, volumes)
 
     except Exception as e:
