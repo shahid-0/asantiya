@@ -15,14 +15,13 @@ def restart(
         names: Annotated[List[str], typer.Option(help="Single or list of accessories name")] = None,
         force: Annotated[bool, typer.Option("--force", "-f", help="If True, forces restart even if container isn't running", is_flag=True, show_default="False")] = False
     ) -> None:
-    config = load_config(Path().cwd() / "deploy.yaml")
     docker_manager = DockerManager()
 
     try:
-        setup_connection(config, docker_manager)
+        setup_connection(docker_manager)
 
         if not names:
-            names = docker_manager.list_accessory_services(config.accessories) 
+            names = docker_manager.list_accessory_services(docker_manager.config.accessories) 
         docker_manager.restart_accessories(names=names, force_restart=force)
 
     except Exception as e:

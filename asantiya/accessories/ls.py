@@ -11,13 +11,12 @@ app = typer.Typer()
 
 @app.command(help="List containers")
 def ls() -> None:
-    config = load_config(Path().cwd() / "deploy.yaml")
     docker_manager = DockerManager()
     
     try:
-        setup_connection(config, docker_manager)
+        setup_connection(docker_manager)
             
-        results = docker_manager.list_configured_containers(config.accessories)
+        results = docker_manager.list_configured_containers(docker_manager.config.accessories)
         # _logger.info(f"Successfully deployed in order: {', '.join(results.keys())}")
             
     except Exception as e:

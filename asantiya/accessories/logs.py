@@ -16,13 +16,12 @@ def logs(
         follow: Annotated[bool, typer.Option("--follow", "-f", help="Keep streaming new log output (like tail -f)", is_flag=True, show_default="False")] = False,
         tail: Annotated[int, typer.Option("--tail", "-t", help="Number of lines to show from the end of logs")] = 100
     ) -> None:
-    config = load_config(Path().cwd() / "deploy.yaml")
     docker_manager = DockerManager()
     
     try:
-        setup_connection(config, docker_manager)
+        setup_connection(docker_manager)
             
-        docker_manager.show_accessory_logs(config.accessories, name, follow, tail)
+        docker_manager.show_accessory_logs(docker_manager.config.accessories, name, follow, tail)
             
     except Exception as e:
         _logger.exception(f"Unexpected error during showing accessory logs: {e}")

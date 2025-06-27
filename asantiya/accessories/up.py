@@ -11,13 +11,12 @@ app = typer.Typer()
 
 @app.command(help="Start accessories/container")
 def up() -> None:
-    config = load_config(Path().cwd() / "deploy.yaml")
     docker_manager = DockerManager()
     
     try:
-        setup_connection(config, docker_manager)
+        setup_connection(docker_manager)
             
-        results = docker_manager.create_all_accessories(config.accessories)
+        results = docker_manager.create_all_accessories(docker_manager.config.accessories)
         _logger.info(f"Successfully deployed in order: {', '.join(results.keys())}")
             
     except Exception as e:
