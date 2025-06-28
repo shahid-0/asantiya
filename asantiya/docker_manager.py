@@ -725,14 +725,6 @@ class DockerManager:
         """
         Deploy app to the server
         
-        # Args:
-            # builder: Configured Builder instance
-            # tag: Image name and tag (e.g., 'myapp:1.0')
-            # build_args: Dictionary of build arguments
-            # quiet: Suppress build output
-            # rm: Remove intermediate containers after build
-            # pull: Always attempt to pull newer versions of base images
-        
         Returns:
             The built Docker image object
         
