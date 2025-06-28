@@ -151,15 +151,3 @@ def load_config(yaml_file_path: str, output_file_path: str = None,
     
     return AppConfig(**processed_data)
     
-def _is_local(config: HostConfig) -> bool:
-    """
-    Returns True if running locally (i.e., no key/password set), or host is explicitly boolean.
-    """
-    host = config.host
-    
-    # If host is explicitly False or not a dict-like object, treat as local
-    if isinstance(host, bool):
-        return host is False
-
-    # If host is None or missing key/password, assume local
-    return not (getattr(host, "key", None) or getattr(host, "password", None))

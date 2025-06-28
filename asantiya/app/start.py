@@ -1,7 +1,7 @@
 import typer
 from asantiya.docker_manager import DockerManager
 from asantiya.logger import setup_logging
-from asantiya.utils.docker import setup_connection
+
 
 _logger = setup_logging()
 
@@ -13,7 +13,7 @@ def start() -> None:
     docker_manager = DockerManager()
 
     try:
-        setup_connection(docker_manager)
+        docker_manager.connect()
         docker_manager.start_app()
 
     except Exception as e:

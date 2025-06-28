@@ -30,12 +30,13 @@ class DockerManager:
             
         return load_config(config_path)
             
-    def connect(self, host: str = None, user: str = None, local: bool = False) -> docker.DockerClient:
+    def connect(self) -> docker.DockerClient:
         try:
-            if not local and host and user:
-                self.docker_client = self.docker.DockerClient(base_url=f"ssh://{user}@{host}")
+            if self.config.builder.local:
+                self.docker_client = self.docker.DockerClient(base_url=self.config.builder.remote)
             else:
                 self.docker_client = self.docker.from_env()
+            self.check_docker_version()
             # Test the connection
             self.docker_client.ping()
             _logger.info("Successfully connected to Docker daemon.")

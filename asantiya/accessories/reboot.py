@@ -2,7 +2,7 @@ import typer
 from typing import Annotated
 from asantiya.docker_manager import DockerManager
 from asantiya.logger import setup_logging
-from asantiya.utils.docker import setup_connection
+
 
 _logger = setup_logging()
 
@@ -17,7 +17,7 @@ def reboot(
     docker_manager = DockerManager()
 
     try:
-        setup_connection(docker_manager)
+        docker_manager.connect()
         if name and name != "all":
             result = docker_manager.reboot_single_accessory(name)
             if result is not True:

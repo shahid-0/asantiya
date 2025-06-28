@@ -1,7 +1,7 @@
 import typer
 from typing import Annotated
 from asantiya.docker_manager import DockerManager
-from asantiya.utils.docker import setup_connection
+
 from asantiya.logger import setup_logging
 
 _logger = setup_logging()
@@ -17,7 +17,7 @@ def logs(
     docker_manager = DockerManager()
     
     try:
-        setup_connection(docker_manager)
+        docker_manager.connect()
             
         docker_manager.show_accessory_logs(name, follow, tail)
             

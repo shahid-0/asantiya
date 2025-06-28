@@ -2,7 +2,7 @@ import typer
 from typing import Annotated
 from asantiya.docker_manager import DockerManager
 from asantiya.logger import setup_logging
-from asantiya.utils.docker import setup_connection
+
 
 _logger = setup_logging()
 
@@ -16,7 +16,7 @@ def restart(
     docker_manager = DockerManager()
 
     try:
-        setup_connection(docker_manager)
+        docker_manager.connect()
 
         if name == "all":
             names = docker_manager.list_accessory_services() 
