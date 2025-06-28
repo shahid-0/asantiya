@@ -775,3 +775,10 @@ class DockerManager:
             
         except Exception as e:
             raise RuntimeError(f"Unexpected error: {str(e)}")
+        
+    def remove_app(self) -> None:
+        self.stop_app_container(force=True)
+        name = self.list_accessory_services() 
+        self.stop_accessories(name, True)
+        self.delete_image(self.config.image, force=True)
+        
