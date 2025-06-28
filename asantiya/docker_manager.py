@@ -90,6 +90,82 @@ class DockerManager:
 
         return _accessory
 
+    def delete_image(self, image_name: str, force: bool = False, prune: bool = True) -> bool:
+        """
+        Delete a single Docker image with enhanced error handling
+        
+        Args:
+            image_name: Name or ID of the image to delete
+            force: Force removal if image is in use
+            prune: Remove dangling child images
+        
+        Returns:
+            bool: True if deleted successfully, False otherwise
+        
+        Raises:
+            ValueError: If image_name is empty
+            RuntimeError: If deletion fails for non-404 reasons
+        """
+        if not image_name:
+            raise ValueError("Image name cannot be empty")
+        
+        try:
+            _logger.info(f"Attempting to delete image: {image_name}")
+            image = self.docker_client.images.get(image_name)
+            
+            # Get tags before deletion for logging
+            tags = image.tags or ["<untagged>"]
+            
+            self.docker_client.images.remove(
+                image.id,
+                force=force,
+                noprune=not prune
+            )
+            
+            _logger.info(f"Successfully deleted image: {tags[0]} (ID: {image.id[:12]})")
+            return True
+            
+        except docker.errors.ImageNotFound:
+            _logger.warning(f"Image not found: {image_name}")
+            return False
+        except docker.errors.APIError as e:
+            error_msg = f"Failed to delete {image_name}: {e.explanation}"
+            _logger.error(error_msg)
+            raise RuntimeError(error_msg)
+        
+    def delete_images(self, image_names: List[str], force: bool = False, stop_on_error: bool = False) -> Dict[str, Union[bool, str]]:
+        """
+        Delete multiple Docker images with comprehensive status reporting
+        
+        Args:
+            image_names: List of image names/IDs to delete
+            force: Force removal if images are in use
+            stop_on_error: Whether to stop on first failure
+        
+        Returns:
+            Dict[str, Union[bool, str]]: 
+                Key: image name
+                Value: True if deleted, False if not found, or error message
+        
+        Example:
+            >>> delete_images(["python:3.8", "redis"], force=True)
+            {
+                "python:3.8": True,
+                "redis": "Error: image is referenced in multiple repositories"
+            }
+        """
+        results = {}
+        
+        for name in image_names:
+            try:
+                success = self.delete_image(name, force=force)
+                results[name] = success
+            except Exception as e:
+                results[name] = str(e)
+                if stop_on_error:
+                    break
+        
+        return results
 
     def pull_images(self, images: Annotated[List[str], "List of docker images"]):
         if not images or not isinstance(images, list) or not all(isinstance(img, str) and img.strip() for img in images):
