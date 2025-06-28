@@ -351,12 +351,18 @@ class DockerManager:
                 results[name] = str(e)
         return results
     
-    def stop_app_container(self):
+    def stop_app_container(self, force: bool = False):
+        """
+        force: If True, removes running containers (with SIGKILL)
+        """
         try:
             container = self.docker_client.containers.get(self.config.service)
             if container.status == "running":
-                container.stop(timeout=5)  # More graceful than kill()
+                container.stop(timeout=5,) # More graceful than kill()
                 _logger.info(f"Successfully stopped container: {self.config.service}")
+            if force:
+                container.remove(v=force)
+                _logger.info(f"Remove container: {self.config.service}")
         except docker.errors.NotFound:
             msg = f"Container {self.config.service} not found"
             _logger.error(msg)
@@ -736,10 +742,17 @@ class DockerManager:
         """
         try:
             config = self.config
-            image = self.build_image_from_dockerfile(config.builder, self.config.image)
             
             # Prepare container config
             host_port, container_port = config.app_ports.split(':')
+            self.stop_app_container(force=True)
+            name = self.list_accessory_services() 
+            self.stop_accessories(name, True)
+            self.delete_image(config.image, force=True)
+            
+            image = self.build_image_from_dockerfile(config.builder, self.config.image)
+            results = self.create_all_accessories()
+            _logger.info(f"Successfully deployed in order: {', '.join(results.keys())}")
             try:
                 container = self.docker_client.containers.run(
                     image=image,
@@ -754,7 +767,9 @@ class DockerManager:
                 )
             
                 return container
-                
+            except docker.errors.NotFound:
+                msg = f"Container {config.service} not found"
+                _logger.error(msg)
             except docker.errors.APIError as e:
                 raise RuntimeError(f"Failed to run {config.service}: {e.explanation}")
             
