@@ -649,14 +649,7 @@ class DockerManager:
         """
         try:
             config = self.config
-            builder_conf = config.builder
-            builder = Builder(
-                arch="amd64", 
-                dockerfile=builder_conf.dockerfile, 
-                local=builder_conf.local, 
-                remote=builder_conf.remote
-            )
-            image = self.build_image_from_dockerfile(builder, self.config.image)
+            image = self.build_image_from_dockerfile(config.builder, self.config.image)
             
             # Prepare container config
             host_port, container_port = config.app_ports.split(':')
