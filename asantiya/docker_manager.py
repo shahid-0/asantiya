@@ -29,7 +29,6 @@ class DockerManager:
             config_path = Path().cwd() / "deploy.yaml"
             
         return load_config(config_path)
-        
             
     def connect(self, host: str = None, user: str = None, local: bool = False) -> docker.DockerClient:
         try:
@@ -43,8 +42,7 @@ class DockerManager:
             return self.docker_client
         except docker.errors.DockerException as e:
             raise ConnectionError(f"Failed to connect to Docker: {str(e)}")
-        
-            
+          
     def check_docker_version(self) -> str:
         if not self.docker_client:
             _logger.error("❌ Docker client is not connected. Please call connect() first.")
@@ -352,7 +350,20 @@ class DockerManager:
             except Exception as e:
                 results[name] = str(e)
         return results
-                    
+    
+    def stop_app_container(self):
+        try:
+            container = self.docker_client.containers.get(self.config.service)
+            if container.status == "running":
+                container.stop(timeout=5)  # More graceful than kill()
+                _logger.info(f"Successfully stopped container: {self.config.service}")
+        except docker.errors.NotFound:
+            msg = f"Container {self.config.service} not found"
+            _logger.error(msg)
+        except docker.errors.APIError as e:
+            msg = f"Failed to stop {self.config.service}: {e.explanation}"
+            _logger.error(msg)   
+              
     def _parse_volumes(self, volumes: List[str]) -> Dict[str, Dict]:
         """Convert volume strings to Docker format"""
         result = {}
