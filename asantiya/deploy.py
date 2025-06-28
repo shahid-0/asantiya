@@ -14,8 +14,6 @@ def deploy() -> None:
     
     try:
         setup_connection(docker_manager)
-        results = docker_manager.create_all_accessories()
-        _logger.info(f"Successfully deployed in order: {', '.join(results.keys())}")
         docker_manager.deploy_app()
 
     except Exception as e:
