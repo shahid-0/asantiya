@@ -413,7 +413,7 @@ class DockerManager:
         raise_errors: bool = False
     ) -> Dict[str, Union[bool, str]]:
         """
-        Restart one or multiple accessory containers with status reporting
+        Start/Restart one or multiple accessory containers with status reporting
         
         Args:
             names: Container name(s) to restart (str or List[str])
@@ -455,7 +455,7 @@ class DockerManager:
                     continue
                 
                 container.restart(timeout=timeout)
-                _logger.info(f"Successfully restarted container: {name}")
+                _logger.info(f"Successfully started/restarted container: {name}")
                 results[name] = True
                 
             except docker.errors.NotFound:
@@ -465,13 +465,13 @@ class DockerManager:
                 if raise_errors:
                     raise ValueError(msg)
             except docker.errors.APIError as e:
-                msg = f"Failed to restart {name}: {e.explanation}"
+                msg = f"Failed to start/restart {name}: {e.explanation}"
                 _logger.error(msg)
                 results[name] = msg
                 if raise_errors:
                     raise RuntimeError(msg)
             except Exception as e:
-                msg = f"Unexpected error restarting {name}: {str(e)}"
+                msg = f"Unexpected error starting/restarting {name}: {str(e)}"
                 _logger.error(msg)
                 results[name] = msg
                 if raise_errors:
@@ -781,4 +781,19 @@ class DockerManager:
         name = self.list_accessory_services() 
         self.stop_accessories(name, True)
         self.delete_image(self.config.image, force=True)
+    
+    def start_app(self) -> None:
+        names = self.list_accessory_services() 
+        self.restart_accessories(names=names, force_restart=True)
         
+        try:
+            container = self.docker_client.containers.get(self.config.service)
+            if container.status != "running":
+                container.start()
+                msg = f"Container {self.config.service} start running"
+                _logger.info(msg)
+        except docker.errors.NotFound:
+            msg = f"Container {self.config.service} not found"
+            _logger.error(msg)
+        except docker.errors.APIError as e:
+            raise RuntimeError(f"Unexpected error while starting the app: {self.config.service}: {e.explanation}")
