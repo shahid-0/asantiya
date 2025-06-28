@@ -24,8 +24,8 @@ def init() -> None:
                     "service": "asantiya-db",
                     "image": "postgres:13",
                     "ports": "8069:8069",
-                    "options": [{ "restart": "always" }],
-                    "env": [{ "POSTGRES_PASSWORD": "some-strong-password-for-postgressql"}],
+                    "options": { "restart": "always" },
+                    "env": { "POSTGRES_PASSWORD": "some-strong-password-for-postgressql"},
                     "volumes": [ "myvolume:/var/lib/postgresql/data" ],
                     "network": "asantiya"
                 }
