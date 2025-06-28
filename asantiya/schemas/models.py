@@ -5,10 +5,6 @@ from pathlib import Path
 class ContainerOptions(BaseModel):
     restart: str = "always"
     
-class HostConfig(BaseModel):
-    user: str = "root"
-    key: Path = None
-    password: str = None
     
 class Builder(BaseModel):
     arch: Literal['amd64', 'arm64', 'armv7'] = 'amd64'
@@ -48,5 +44,4 @@ class AppConfig(BaseModel):
     server: str = "${SERVER}"
     app_ports: str = "HOST_PORT:CONTAINER_PORT"
     builder: Builder = Builder()
-    host: Union[HostConfig, bool] = False
     accessories: Dict[str, AccessoryConfig] = Field(default_factory=dict)
