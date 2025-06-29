@@ -32,7 +32,7 @@ class DockerManager:
             
     def connect(self) -> docker.DockerClient:
         try:
-            if self.config.builder.local:
+            if not self.config.builder.local:
                 self.docker_client = self.docker.DockerClient(base_url=self.config.builder.remote)
             else:
                 self.docker_client = self.docker.from_env()

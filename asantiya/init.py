@@ -12,11 +12,12 @@ app = typer.Typer()
 def init() -> None:
     try:
         DocumentedConfigGenerator.generate_documented_yaml(
-            output_path=Path("asantiya-config.yml"),
+            output_path=Path("deploy.yaml"),
             builder={
                 "# Build machine specifications": None,
                 "arch": "amd64",
-                "remote": "ssh://build@ci.example.com"
+                "remote": "ssh://build@ci.example.com",
+                "local": False
             },
             accessories={
                 "db": {
