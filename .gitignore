@@ -194,3 +194,6 @@ cython_debug/
 .cursorindexingignore
 
 deploy.yaml
+
+# dev related
+.history
