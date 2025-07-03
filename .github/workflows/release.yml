@@ -15,8 +15,6 @@ jobs:
       id-token: write
 
     steps:
-      - uses: actions/checkout@v4
-
       - name: Enable caching
         uses: astral-sh/setup-uv@v5
         with:
