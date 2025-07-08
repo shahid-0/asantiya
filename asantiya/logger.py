@@ -13,7 +13,7 @@ def setup_logging(verbose: bool = False):
         datefmt=date_format,
         handlers=[RichHandler(
             rich_tracebacks=True,
-            markup=True,
+            markup=False,
             show_path=False,
             log_time_format=date_format
         )]
