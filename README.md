@@ -2,8 +2,8 @@
 
 **Asantiya** (*Pashto: اسانتیا*) isn't just a name – it embodies the spirit of the tool. In Pashto:
 
-- **اسان (asan)** = *easy*  
-- **اسانتیا (asantiya)** = *ease*, *comfort*, *convenience*
+- **asan (اسان)** = *easy*  
+- **asantiya (اسانتیا)** = *ease*, *comfort*, *convenience*
 
 This CLI tool makes deploying applications effortless, whether you're targeting local environments or remote servers.
 
