@@ -52,9 +52,9 @@ dev = [
 django = ["Django>=5.0"]
 
 [project.urls]
-Homepage = "https://github.com/yourusername/asantiya"
-Documentation = "https://github.com/yourusername/asantiya#readme"
-Issues = "https://github.com/yourusername/asantiya/issues"
+Homepage = "https://github.com/shahid-0/asantiya"
+Documentation = "https://github.com/shahid-0/asantiya#readme"
+Issues = "https://github.com/shahid-0/asantiya/issues"
 
 [project.scripts]
 asantiya = "asantiya.__main__:main"
