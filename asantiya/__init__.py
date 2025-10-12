@@ -1,4 +1,5 @@
-"""Top-level package for Odoo-ops."""
+"""Top-level package for asantiya."""
+
 # asantiya/__init__.py
 
 __app_name__ = "asantiya"

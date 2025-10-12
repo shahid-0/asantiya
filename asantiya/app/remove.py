@@ -1,7 +1,7 @@
 import typer
+
 from asantiya.docker_manager import DockerManager
 from asantiya.logger import setup_logging
-
 
 _logger = setup_logging()
 

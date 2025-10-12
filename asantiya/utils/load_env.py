@@ -1,8 +1,10 @@
 import os
+
 from dotenv import load_dotenv
 
 # Load the .env file once (you can optionally pass a path)
 load_dotenv()  # or load_dotenv(dotenv_path=".env")
+
 
 def get_env(key: str, default: str = None, required: bool = False) -> str:
     """

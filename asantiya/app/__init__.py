@@ -1,8 +1,8 @@
 import typer
-from asantiya.app.remove import app as delete_app
-from asantiya.app.stop import app as stop_app
-from asantiya.app.start import app as start_app
 
+from asantiya.app.remove import app as delete_app
+from asantiya.app.start import app as start_app
+from asantiya.app.stop import app as stop_app
 
 app = typer.Typer()
 

@@ -1,5 +1,7 @@
 from datetime import datetime, timezone
+
 import dateutil.parser
+
 
 def _format_uptime(started_at: str, status: str) -> str:
     try:

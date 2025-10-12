@@ -1,19 +1,33 @@
-import typer
 from typing import Annotated
+
+import typer
+
 from asantiya.docker_manager import DockerManager
 from asantiya.logger import setup_logging
-
 
 _logger = setup_logging()
 
 app = typer.Typer()
 
 
-@app.command(help="Reboot existing accessory on host (stop container, remove container, start new container; use NAME=all to boot all accessories)")
+@app.command(
+    help="Reboot existing accessory on host (stop container, remove container, start new container; use NAME=all to boot all accessories)"
+)
 def reboot(
-        name: Annotated[str, typer.Argument(help="Accessory name (use all to boot all accessories)")],
-        force: Annotated[bool, typer.Option("--force", "-f", help="Continue after errors", is_flag=True, show_default="False")] = False,
-    ) -> None:
+    name: Annotated[
+        str, typer.Argument(help="Accessory name (use all to boot all accessories)")
+    ],
+    force: Annotated[
+        bool,
+        typer.Option(
+            "--force",
+            "-f",
+            help="Continue after errors",
+            is_flag=True,
+            show_default="False",
+        ),
+    ] = False,
+) -> None:
     docker_manager = DockerManager()
 
     try:
