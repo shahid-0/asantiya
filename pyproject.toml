@@ -50,6 +50,18 @@ dev = [
     "twine>=4.0",
 ]
 
+[tool.uv]
+dev-dependencies = [
+    "pytest>=7.0",
+    "pytest-cov>=4.0",
+    "black>=23.0",
+    "mypy>=1.0",
+    "flake8>=6.0",
+    "isort>=5.12",
+    "ipython>=8.0",
+    "twine>=4.0",
+]
+
 [project.urls]
 Homepage = "https://github.com/shahid-0/asantiya"
 Documentation = "https://github.com/shahid-0/asantiya#readme"
@@ -88,6 +100,10 @@ line_length = 88
 
 [dependency-groups]
 dev = [
+    "black>=25.9.0",
+    "flake8>=7.3.0",
+    "isort>=6.1.0",
+    "mypy>=1.18.2",
     "pytest>=8.4.2",
     "pytest-cov>=7.0.0",
     "twine>=6.2.0",
