@@ -32,8 +32,10 @@ def down(
         docker_manager.connect()
 
         if name == "all":
-            name = docker_manager.list_accessory_services()
-        docker_manager.stop_accessories(name, volumes)
+            names = docker_manager.list_accessory_services()
+        else:
+            names = [name]
+        docker_manager.stop_accessories(names, volumes)
 
     except Exception as e:
         _logger.exception(f"❌ Unexpected error during stopping containers: {e}")

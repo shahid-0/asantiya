@@ -426,7 +426,7 @@ def _interactive_config_setup(config_data: dict) -> dict:
     return config_data
 
 
-def _show_config_summary(config_data: dict):
+def _show_config_summary(config_data: dict) -> None:
     """Show configuration summary table."""
     table = Table(title="Configuration Summary")
     table.add_column("Setting", style="cyan")
@@ -445,7 +445,7 @@ def _show_config_summary(config_data: dict):
     console.print(table)
 
 
-def _show_deploy_config_summary(config_path: Path):
+def _show_deploy_config_summary(config_path: Path) -> None:
     """Show deployment configuration summary."""
     try:
         from asantiya.utils.config import load_config
