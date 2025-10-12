@@ -20,7 +20,7 @@ wheels = [
 
 [[package]]
 name = "asantiya"
-version = "0.1.1"
+version = "0.1.2"
 source = { editable = "." }
 dependencies = [
     { name = "docker" },
@@ -50,6 +50,8 @@ dev = [
 
 [package.dev-dependencies]
 dev = [
+    { name = "pytest" },
+    { name = "pytest-cov" },
     { name = "twine" },
 ]
 
@@ -75,7 +77,11 @@ requires-dist = [
 provides-extras = ["dev"]
 
 [package.metadata.requires-dev]
-dev = [{ name = "twine", specifier = ">=6.2.0" }]
+dev = [
+    { name = "pytest", specifier = ">=8.4.2" },
+    { name = "pytest-cov", specifier = ">=7.0.0" },
+    { name = "twine", specifier = ">=6.2.0" },
+]
 
 [[package]]
 name = "asttokens"
