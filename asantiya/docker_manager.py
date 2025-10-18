@@ -833,20 +833,60 @@ class DockerManager:
         self.stop_accessories(name, True)
         self.delete_image(self.config.image, force=True)
 
-    def start_app(self) -> None:
-        names = self.list_accessory_services()
-        self.restart_accessories(names=names, force_restart=True)
-
+    def start_accessories(self) -> None:
+        """Start all accessory containers, creating them if they don't exist."""
+        if not self.config.accessories:
+            _logger.info("No accessory containers configured")
+            return
+            
+        _logger.info("Creating and starting accessory containers...")
         try:
+            # Create all accessories first
+            self.create_all_accessories()
+            _logger.info("✅ All accessory containers created and started")
+        except Exception as e:
+            _logger.error(f"Failed to create accessory containers: {e}")
+            raise
+
+    def start_app(self) -> None:
+        """Start the main application container, creating it if it doesn't exist."""
+        try:
+            # Try to get existing container
             container = self.docker_client.containers.get(self.config.service)
             if container.status != "running":
                 container.start()
-                msg = f"Container {self.config.service} start running"
-                _logger.info(msg)
+                _logger.info(f"✅ Started existing container {self.config.service}")
+            else:
+                _logger.info(f"✅ Container {self.config.service} is already running")
         except docker.errors.NotFound:
-            msg = f"Container {self.config.service} not found"
-            _logger.error(msg)
+            # Container doesn't exist, create it
+            _logger.info(f"Container {self.config.service} not found, creating it...")
+            self._create_app_container()
         except docker.errors.APIError as e:
             raise RuntimeError(
                 f"Unexpected error while starting the app: {self.config.service}: {e.explanation}"
             )
+
+    def _create_app_container(self) -> None:
+        """Create the main application container."""
+        config = self.config
+        
+        # Prepare container config
+        host_port, container_port = config.app_ports.split(":")
+        
+        # Get the image
+        try:
+            image = self.docker_client.images.get(config.image)
+        except docker.errors.ImageNotFound:
+            raise RuntimeError(f"Image {config.image} not found. Please build the image first.")
+        
+        # Create and start the container
+        container = self.docker_client.containers.run(
+            image=image,
+            name=config.service,
+            ports={f"{container_port}/tcp": int(host_port)},
+            detach=True,
+            restart_policy={"Name": "always"},
+            network=config.network,
+        )
+        _logger.info(f"✅ Created and started container {config.service} (ID: {container.id[:12]})")
