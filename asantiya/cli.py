@@ -170,8 +170,6 @@ def deploy_cmd(
 
         # Start deployment
         with DeploymentLogger("Deployment") as logger:
-            logger.start()
-
             try:
                 # Initialize Docker manager
                 docker_manager = DockerManager(str(config_path))
@@ -194,7 +192,10 @@ def deploy_cmd(
                         console=console,
                     ) as progress:
                         task = progress.add_task("Building Docker image...", total=None)
-                        docker_manager.build_image_from_dockerfile()
+                        docker_manager.build_image_from_dockerfile(
+                            builder=docker_manager.config.builder,
+                            tag=docker_manager.config.image
+                        )
                         progress.update(task, description="✅ Docker image built")
 
                 # Start accessories if not skipped
@@ -222,7 +223,6 @@ def deploy_cmd(
                     docker_manager.start_app()
                     progress.update(task, description="✅ Main application started")
 
-                logger.complete()
                 console.print(
                     Panel(
                         "[bold green]🎉 Deployment completed successfully![/bold green]\n"
@@ -232,7 +232,6 @@ def deploy_cmd(
                 )
 
             except Exception as e:
-                logger.fail(str(e))
                 console.print(f"[red]Deployment failed: {e}[/red]")
                 raise typer.Exit(1)
 
