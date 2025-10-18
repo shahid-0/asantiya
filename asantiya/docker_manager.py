@@ -719,9 +719,22 @@ class DockerManager:
                 _logger.info(f"🏗️ Building {tag} for {builder.platform}")
 
             # Build the image with real-time streaming
+            # Note: Docker's regular build API doesn't support cross-platform builds
+            # The platform parameter is ignored when building on remote servers
+            # For cross-platform builds, you need to use Docker Buildx or build locally
+            if not builder.local and builder.arch != "amd64":
+                _logger.warning(
+                    f"⚠️ Cross-platform build requested ({builder.platform}) on remote server. "
+                    f"Falling back to native architecture (amd64). "
+                    f"Consider using local builds or Buildx for multi-arch support."
+                )
+                platform = None
+            else:
+                platform = builder.platform
+            
             stream = self.docker_client.api.build(
                 path=str(builder.dockerfile),
-                platform=builder.platform,
+                platform=platform,
                 tag=tag,
                 buildargs=build_args,
                 rm=rm,
