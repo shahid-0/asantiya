@@ -40,7 +40,7 @@ def ensure_network(client: DockerClient, network_name: str) -> None:
             client.networks.create(
                 network_name,
                 driver="bridge",
-                labels={"managed_by": "odooops"},
+                labels={"managed_by": "asantiya"},
                 check_duplicate=True,
             )
         else:

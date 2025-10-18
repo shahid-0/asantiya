@@ -215,51 +215,40 @@ class DockerManager:
                 "You must provide a non-empty list of valid Docker image names."
             )
 
-        with Progress(
-            TextColumn("[bold]{task.description}"),
-            BarColumn(),
-            TransferSpeedColumn(),
-        ) as progress:
+        for img in images:
+            _logger.info(f"  → Checking {img}")
 
-            # Task 1: Pulling Images
-            pull_task = progress.console.print("[cyan]Checking images...")
-
-            for img in images:
-                progress.console.print(f"  → Checking {img}")
-
+            try:
+                # Check if image exists locally
+                self.docker_client.images.get(img)
+                _logger.info(f"    ✓ {img} already exists")
+                continue
+            except docker.errors.ImageNotFound:
+                _logger.info(f"    📥 Pulling {img}...")
                 try:
-                    # Check if image exists locally
-                    self.docker_client.images.get(img)
-                    progress.console.print(
-                        f"    ✓ {img} already exists", style="green dim"
-                    )
-                    # progress.advance(pull_task)
-                    continue
-                except docker.errors.ImageNotFound:
                     for line in self.docker_client.api.pull(
                         img, stream=True, decode=True
                     ):
-                        if "progressDetail" in line and line["progressDetail"].get(
-                            "total"
-                        ):
-                            current = line["progressDetail"]["current"]
-                            total = line["progressDetail"]["total"]
-                            progress.update(
-                                pull_task,
-                                completed=int((current / total) * 100),
-                                description=f"[green]Pulling {img}",
-                            )
+                        # Show progress messages
+                        if line.get("status"):
+                            if "progressDetail" in line and line["progressDetail"].get("total"):
+                                current = line["progressDetail"]["current"]
+                                total = line["progressDetail"]["total"]
+                                percent = int((current / total) * 100)
+                                _logger.info(f"    📦 {line['status']} {percent}%")
+                            elif line.get("status") == "Download complete":
+                                _logger.info(f"    ✓ {line.get('id', '')[:12]}... {line['status']}")
+                            elif "error" in line:
+                                _logger.error(f"    ❌ Error: {line['error']}")
+                                raise RuntimeError(f"Failed to pull {img}: {line['error']}")
 
-                        # Optional: Show layer completion messages
-                        if line.get("status") == "Download complete":
-                            progress.console.print(
-                                f"    [dim]{line.get('id', '')[:12]}... {line['status']}",
-                                style="dim",
-                            )
-
-                    progress.console.print(
-                        f"    ✓ {img} pulled successfully", style="green dim"
-                    )
+                    _logger.info(f"    ✓ {img} pulled successfully")
+                except docker.errors.APIError as e:
+                    _logger.error(f"    ❌ Failed to pull {img}: {e}")
+                    raise RuntimeError(f"Failed to pull {img}: {e}")
+                except Exception as e:
+                    _logger.error(f"    ❌ Unexpected error pulling {img}: {e}")
+                    raise
 
     def create_accessory(
         self, config: AccessoryConfig, service_name: str
@@ -841,6 +830,9 @@ class DockerManager:
             
         _logger.info("Creating and starting accessory containers...")
         try:
+            # Ensure network exists before creating accessories
+            ensure_network(self.docker_client, self.config.network)
+            
             # Create all accessories first
             self.create_all_accessories()
             _logger.info("✅ All accessory containers created and started")
@@ -870,6 +862,9 @@ class DockerManager:
     def _create_app_container(self) -> None:
         """Create the main application container."""
         config = self.config
+        
+        # Ensure network exists
+        ensure_network(self.docker_client, config.network)
         
         # Prepare container config
         host_port, container_port = config.app_ports.split(":")

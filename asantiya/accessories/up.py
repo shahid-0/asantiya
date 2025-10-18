@@ -1,4 +1,5 @@
 import typer
+from pathlib import Path
 
 from asantiya.docker_manager import DockerManager
 from asantiya.logger import setup_logging
@@ -9,8 +10,16 @@ app = typer.Typer()
 
 
 @app.command(help="Start accessories/container")
-def up() -> None:
-    docker_manager = DockerManager()
+def up(
+    config: str = typer.Option(
+        "deploy.yaml",
+        "--config",
+        "-c",
+        help="Path to configuration file",
+    ),
+) -> None:
+    config_path = Path(config)
+    docker_manager = DockerManager(config_path)
 
     try:
         docker_manager.connect()
