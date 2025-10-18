@@ -3,6 +3,7 @@ from typing import Annotated, Dict, List, Optional, Union
 
 import docker
 import docker.errors
+
 # Rich progress imports removed as they're not used in current implementation
 from tabulate import tabulate
 
