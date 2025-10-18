@@ -3,12 +3,7 @@ from typing import Annotated, Dict, List, Optional, Union
 
 import docker
 import docker.errors
-from rich.progress import (
-    BarColumn,
-    Progress,
-    TextColumn,
-    TransferSpeedColumn,
-)
+# Rich progress imports removed as they're not used in current implementation
 from tabulate import tabulate
 
 from asantiya.logger import setup_logging
@@ -231,16 +226,22 @@ class DockerManager:
                     ):
                         # Show progress messages
                         if line.get("status"):
-                            if "progressDetail" in line and line["progressDetail"].get("total"):
+                            if "progressDetail" in line and line["progressDetail"].get(
+                                "total"
+                            ):
                                 current = line["progressDetail"]["current"]
                                 total = line["progressDetail"]["total"]
                                 percent = int((current / total) * 100)
                                 _logger.info(f"    📦 {line['status']} {percent}%")
                             elif line.get("status") == "Download complete":
-                                _logger.info(f"    ✓ {line.get('id', '')[:12]}... {line['status']}")
+                                _logger.info(
+                                    f"    ✓ {line.get('id', '')[:12]}... {line['status']}"
+                                )
                             elif "error" in line:
                                 _logger.error(f"    ❌ Error: {line['error']}")
-                                raise RuntimeError(f"Failed to pull {img}: {line['error']}")
+                                raise RuntimeError(
+                                    f"Failed to pull {img}: {line['error']}"
+                                )
 
                     _logger.info(f"    ✓ {img} pulled successfully")
                 except docker.errors.APIError as e:
@@ -720,7 +721,7 @@ class DockerManager:
                 platform = None
             else:
                 platform = builder.platform
-            
+
             stream = self.docker_client.api.build(
                 path=str(builder.dockerfile),
                 platform=platform,
@@ -827,12 +828,12 @@ class DockerManager:
         if not self.config.accessories:
             _logger.info("No accessory containers configured")
             return
-            
+
         _logger.info("Creating and starting accessory containers...")
         try:
             # Ensure network exists before creating accessories
             ensure_network(self.docker_client, self.config.network)
-            
+
             # Create all accessories first
             self.create_all_accessories()
             _logger.info("✅ All accessory containers created and started")
@@ -862,19 +863,21 @@ class DockerManager:
     def _create_app_container(self) -> None:
         """Create the main application container."""
         config = self.config
-        
+
         # Ensure network exists
         ensure_network(self.docker_client, config.network)
-        
+
         # Prepare container config
         host_port, container_port = config.app_ports.split(":")
-        
+
         # Get the image
         try:
             image = self.docker_client.images.get(config.image)
         except docker.errors.ImageNotFound:
-            raise RuntimeError(f"Image {config.image} not found. Please build the image first.")
-        
+            raise RuntimeError(
+                f"Image {config.image} not found. Please build the image first."
+            )
+
         # Create and start the container
         container = self.docker_client.containers.run(
             image=image,
@@ -884,4 +887,6 @@ class DockerManager:
             restart_policy={"Name": "always"},
             network=config.network,
         )
-        _logger.info(f"✅ Created and started container {config.service} (ID: {container.id[:12]})")
+        _logger.info(
+            f"✅ Created and started container {config.service} (ID: {container.id[:12]})"
+        )

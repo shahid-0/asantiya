@@ -13,8 +13,7 @@ from asantiya import __app_name__, __version__
 from asantiya.accessories import app as accessories_app
 from asantiya.app import app as asantiya_app
 from asantiya.docker_manager import DockerManager
-from asantiya.logger import DeploymentLogger, setup_logging
-from asantiya.schemas.models import ConfigurationError
+from asantiya.logger import DeploymentLogger
 from asantiya.utils.config import DocumentedConfigGenerator
 
 # Create console for rich output
@@ -84,7 +83,7 @@ def init_cmd(
 
         # Generate configuration
         generator = DocumentedConfigGenerator()
-        yaml_content = generator.generate_documented_yaml(output_path, **config_data)
+        generator.generate_documented_yaml(output_path, **config_data)
 
         # Show success message
         console.print(
@@ -169,7 +168,7 @@ def deploy_cmd(
                 return
 
         # Start deployment
-        with DeploymentLogger("Deployment") as logger:
+        with DeploymentLogger("Deployment"):
             try:
                 # Initialize Docker manager
                 docker_manager = DockerManager(str(config_path))
@@ -194,7 +193,7 @@ def deploy_cmd(
                         task = progress.add_task("Building Docker image...", total=None)
                         docker_manager.build_image_from_dockerfile(
                             builder=docker_manager.config.builder,
-                            tag=docker_manager.config.image
+                            tag=docker_manager.config.image,
                         )
                         progress.update(task, description="✅ Docker image built")
 
