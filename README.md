@@ -94,9 +94,6 @@ Asantiya will create a `deploy.yaml` file with your configuration:
 service: my-app
 image: my-app:latest
 
-# Server connection details (use environment variables)
-server: ${SERVER}
-
 # Port mappings (host:container)
 app_ports: 8080:80
 
@@ -144,7 +141,6 @@ image: string               # Docker image name
 app_ports: string           # Port mapping (host:container)
 
 # Optional fields
-server: string              # Server hostname/IP
 environment:                # Environment variables
   KEY: value
 volumes:                    # Volume mounts
@@ -184,7 +180,6 @@ Asantiya supports environment variable substitution in configuration files:
 ```yaml
 service: ${APP_NAME}
 image: ${DOCKER_REGISTRY}/${APP_NAME}:${VERSION}
-server: ${DEPLOY_SERVER}
 ```
 
 Required environment variables can be specified:

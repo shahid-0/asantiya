@@ -54,7 +54,6 @@ class TestLoadConfig:
             "service": "test-app",
             "image": "${IMAGE_NAME}",
             "app_ports": "8080:80",
-            "server": "${SERVER_HOST}",
         }
 
         config_file = temp_dir / "env_config.yaml"
@@ -63,11 +62,10 @@ class TestLoadConfig:
 
         with patch.dict(
             "os.environ",
-            {"IMAGE_NAME": "my-app:latest", "SERVER_HOST": "prod.example.com"},
+            {"IMAGE_NAME": "my-app:latest"},
         ):
             config = load_config(str(config_file))
             assert config.image == "my-app:latest"
-            assert config.server == "prod.example.com"
 
     def test_load_config_missing_required_env_var(self, temp_dir):
         """Test loading config with missing required environment variable."""

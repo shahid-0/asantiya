@@ -27,7 +27,6 @@ def sample_config_data(temp_dir):
     return {
         "service": "test-app",
         "image": "test-app:latest",
-        "server": "test-server.com",
         "app_ports": "8080:80",
         "builder": {
             "arch": "amd64",

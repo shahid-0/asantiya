@@ -147,7 +147,6 @@ class AppConfig(BaseModel):
 
     service: str = "asantiya"
     image: str = "asantiya-service"
-    server: str = "${SERVER}"
     app_ports: str = "8020:8020"
     builder: Builder = Field(default_factory=Builder)
     accessories: Dict[str, AccessoryConfig] = Field(default_factory=dict)

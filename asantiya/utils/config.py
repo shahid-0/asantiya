@@ -25,8 +25,6 @@ class DocumentedConfigGenerator:
             "# Main application configuration": None,
             "service": "asantiya",
             "image": "${HOST_USER}/asantiya",
-            "# Server connection details (use environment variables)": None,
-            "server": "${SERVER}",
             "# Port mappings (host:container)": None,
             "app_ports": "8020:8020",
             "# Host machine configuration (set to false if not needed)": None,
